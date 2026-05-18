@@ -102,6 +102,10 @@ export default function GameCard({
     (x) => x.returnAttachedDonsToRest
   );
 
+  const isDraggable =
+    !overlay &&
+    from !== "leader";
+
   const {
     attributes,
     listeners,
@@ -110,7 +114,9 @@ export default function GameCard({
     isDragging,
   } = useDraggable({
     id: card.id,
-    disabled: overlay,
+
+    disabled: !isDraggable,
+
     data: {
       cardId: card.id,
       from,
@@ -145,7 +151,7 @@ export default function GameCard({
           !overlay && transform
             ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
             : undefined,
-        cursor: overlay ? "default" : "grab",
+        cursor: isDraggable ? "grab" : "default",
         touchAction: "none",
         zIndex: overlay || isDragging || menuOpen ? 99999 : 10,
         opacity: isDragging && !overlay ? 0.2 : 1,

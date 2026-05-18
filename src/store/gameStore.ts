@@ -60,14 +60,23 @@ function createPlayer(
     deck.filter((x) => x.type !== "leader" && x.type !== "don")
   );
 
-  const donCards = deck
-    .filter((x) => x.type === "don")
-    .map((card) => ({
-      ...card,
-      rotated: false,
-      attachedDonCount: 0,
-      isFaceUp: true,
-    }));
+  const donCards = Array.from({
+    length: 10,
+  }).map((_, index) => ({
+    id: `don-${index}`,
+
+    name: "DON!!",
+
+    image: getDonImageUrl(),
+
+    type: "don" as const,
+
+    rotated: false,
+
+    attachedDonCount: 0,
+
+    isFaceUp: true,
+  }));
 
   const lifeCount = leader?.lifeCount ?? 5;
 
@@ -96,20 +105,7 @@ function createPlayer(
       null,
     ],
 
-    donDeck:
-      donCards.length > 0
-        ? donCards
-        : Array.from({
-          length: leader?.donCount ?? 10,
-        }).map((_) => ({
-          id: Math.random().toString(36).slice(2),
-          name: "DON",
-          image: getDonImageUrl(),
-          type: "don" as const,
-          rotated: false,
-          attachedDonCount: 0,
-          isFaceUp: true,
-        })),
+    donDeck: donCards,
 
     activeDons: [],
 
@@ -1631,86 +1627,90 @@ export const useGameStore =
 
         return { players };
       }),
-      resetGameToMulligan: () => {
-  set((state) => {
-    const resetPlayer = (player: PlayerState): PlayerState => {
-  const mainDeckCards = [
-    ...player.deck,
-    ...player.hand,
-    ...player.life,
-    ...player.trash,
-    ...player.characters.filter(
-      (x): x is CardData => x !== null
-    ),
-    ...(player.stage ? [player.stage] : []),
-  ].map((card) => ({
-    ...card,
-    rotated: false,
-    powerModifier: 0,
-    statusLabel: undefined,
-    attachedDonCount: 0,
-    isFaceUp: false,
-  }));
+    resetGameToMulligan: () => {
+      set((state) => {
+        const resetPlayer = (player: PlayerState): PlayerState => {
+          const mainDeckCards = [
+            ...player.deck,
+            ...player.hand,
+            ...player.life,
+            ...player.trash,
+            ...player.characters.filter(
+              (x): x is CardData => x !== null
+            ),
+            ...(player.stage ? [player.stage] : []),
+          ].map((card) => ({
+            ...card,
+            rotated: false,
+            powerModifier: 0,
+            statusLabel: undefined,
+            attachedDonCount: 0,
+            isFaceUp: false,
+          }));
 
-  const shuffledDeck = shuffleCards(mainDeckCards);
+          const shuffledDeck = shuffleCards(mainDeckCards);
 
-  const hand = shuffledDeck.slice(0, 5);
+          const lifeCount = player.leader?.lifeCount ?? 5;
 
-  const life = shuffledDeck.slice(5, 10).map((card) => ({
-    ...card,
-    isFaceUp: false,
-  }));
+          const hand = shuffledDeck.slice(0, 5);
 
-  const deck = shuffledDeck.slice(10);
+          const life = shuffledDeck
+            .slice(5, 5 + lifeCount)
+            .map((card) => ({
+              ...card,
+              isFaceUp: false,
+            }));
 
-  const allDons = [
-    ...player.donDeck,
-    ...player.activeDons,
-    ...player.restDons,
-  ].map((card) => ({
-    ...card,
-    rotated: false,
-    powerModifier: 0,
-    statusLabel: undefined,
-    attachedDonCount: 0,
-    isFaceUp: true,
-  }));
+          const deck = shuffledDeck.slice(5 + lifeCount);
 
-  return {
-    ...player,
+          const allDons = [
+            ...player.donDeck,
+            ...player.activeDons,
+            ...player.restDons,
+          ].map((card) => ({
+            ...card,
+            rotated: false,
+            powerModifier: 0,
+            statusLabel: undefined,
+            attachedDonCount: 0,
+            isFaceUp: true,
+          }));
 
-    deck,
-    hand,
-    life,
-    trash: [],
+          return {
+            ...player,
 
-    characters: [null, null, null, null, null],
-    stage: null,
+            deck,
+            hand,
+            life,
+            trash: [],
 
-    leader: player.leader
-      ? {
-          ...player.leader,
-          rotated: false,
-          powerModifier: 0,
-          statusLabel: undefined,
-          attachedDonCount: 0,
-          isFaceUp: true,
-        }
-      : null,
+            characters: [null, null, null, null, null],
+            stage: null,
 
-    donDeck: allDons,
-    activeDons: [],
-    restDons: [],
-  };
-};
+            leader: player.leader
+              ? {
+                ...player.leader,
+                rotated: false,
+                powerModifier: 0,
+                statusLabel: undefined,
+                attachedDonCount: 0,
+                isFaceUp: true,
+              }
+              : null,
 
-return {
-  players: [
-    resetPlayer(state.players[0]),
-    resetPlayer(state.players[1]),
-  ],
-  selectedDonStack: null,
-};
-  });
-},
+            donDeck: allDons,
+            activeDons: [],
+            restDons: [],
+          };
+        };
+
+        return {
+          players: [
+            resetPlayer(state.players[0]),
+            resetPlayer(state.players[1]),
+          ],
+          selectedDonStack: null,
+        };
+      });
+    },
   }));

@@ -473,6 +473,7 @@ export default function DeckSelect() {
           padding: "10px",
           boxSizing: "border-box",
           boxShadow: "0 -4px 16px rgba(0,0,0,0.45)",
+          marginBottom: "20px"
         }}
       >
         <div
