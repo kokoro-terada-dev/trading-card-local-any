@@ -429,7 +429,7 @@ export default function DeckSelect() {
                       disabled={!usable}
                       onClick={() => selectDeckForPlayer(1, deck)}
                     >
-                      デッキ1に選択
+                      上側に選択
                     </button>
 
                     <button
@@ -444,7 +444,7 @@ export default function DeckSelect() {
                       disabled={!usable}
                       onClick={() => selectDeckForPlayer(2, deck)}
                     >
-                      デッキ2に選択
+                      下側に選択
                     </button>
                   </div>
                 </div>
@@ -499,7 +499,7 @@ export default function DeckSelect() {
                 textOverflow: "ellipsis",
               }}
             >
-              デッキ1：{getDeckName(player1DeckId)}
+              上：{getDeckName(player1DeckId)}
             </div>
 
             <div
@@ -509,7 +509,7 @@ export default function DeckSelect() {
                 textOverflow: "ellipsis",
               }}
             >
-              デッキ2：{getDeckName(player2DeckId)}
+              下：{getDeckName(player2DeckId)}
             </div>
           </div>
 
