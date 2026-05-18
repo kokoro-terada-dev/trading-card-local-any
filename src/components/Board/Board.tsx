@@ -264,6 +264,13 @@ export default function Board({
     >
       <div
         className="board-root"
+        style={{
+          width: "100vw",
+          height: "100dvh",
+          overflow: "hidden",
+          overscrollBehavior: "none",
+          touchAction: "none",
+        }}
         onContextMenu={(e) => {
           e.preventDefault();
         }}

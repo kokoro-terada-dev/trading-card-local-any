@@ -18,6 +18,10 @@ body,
   -webkit-touch-callout: none;
 }
 
+body {
+  touch-action: none;
+}
+
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
