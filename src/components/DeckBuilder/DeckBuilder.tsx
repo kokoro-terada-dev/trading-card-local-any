@@ -517,7 +517,7 @@ export default function DeckBuilder({
       <div
         style={{
           height: "100dvh",
-          background: "#0f172a",
+          background: "#111827",
           color: "white",
           padding: "12px",
           boxSizing: "border-box",

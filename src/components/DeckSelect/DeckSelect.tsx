@@ -258,7 +258,7 @@ export default function DeckSelect() {
     <div
       style={{
         height: "100dvh",
-        background: "#0f172a",
+        background: "#111827",
         color: "white",
         padding: "12px",
         paddingBottom: "132px",
@@ -468,7 +468,7 @@ export default function DeckSelect() {
           right: 0,
           bottom: 0,
           zIndex: 9999,
-          background: "rgba(15,23,42,0.98)",
+          background: "#1e293b",
           borderTop: "2px solid #475569",
           padding: "10px",
           boxSizing: "border-box",

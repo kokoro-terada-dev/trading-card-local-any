@@ -38,7 +38,9 @@ export default function MulliganScreen() {
         }}
       >
         <h1>
-          プレイヤー{mulliganPlayerIndex + 1}：確認
+          {mulliganPlayerIndex === 0
+            ? "上側：確認"
+            : "下側：確認"}
         </h1>
 
         <p>
