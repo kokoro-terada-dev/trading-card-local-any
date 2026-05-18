@@ -143,77 +143,6 @@ export default function DeckSelect() {
     }
   }
 
-  async function openPreview(target: "player1" | "player2") {
-    setError("");
-
-    const choice =
-      target === "player1"
-        ? player1Deck
-        : player2Deck;
-
-    if (!choice) {
-      setError("確認するデッキを選択してください");
-      return;
-    }
-
-    if (choice.kind === "local") {
-      const recipe = getLocalDeckRecipe(choice.id);
-
-      if (!recipe) {
-        setError("保存済みデッキが見つかりません。");
-        return;
-      }
-
-      setPreviewDeck({
-        id: recipe.id,
-        name: recipe.name,
-        leader: {
-          name: recipe.leaderCardId ?? "未設定",
-          image: "",
-          lifeCount: recipe.leaderLifeCount,
-          donCount: recipe.donDeck.length,
-        },
-        cards: Object.entries(
-          recipe.mainDeck.reduce<Record<string, number>>(
-            (result, cardId) => {
-              result[cardId] = (result[cardId] ?? 0) + 1;
-
-              return result;
-            },
-            {}
-          )
-        ).map(([cardId, count]) => ({
-          name: cardId,
-          image: "",
-          type: recipe.cardTypes[cardId] ?? "character",
-          count,
-        })),
-      });
-
-      setPreviewTarget(target);
-      return;
-    }
-
-    try {
-      const res = await fetch(choice.path);
-
-      if (!res.ok) {
-        throw new Error("デッキ内容の読み込みに失敗しました");
-      }
-
-      const json = (await res.json()) as DeckJson;
-
-      setPreviewDeck(json);
-      setPreviewTarget(target);
-    } catch (e) {
-      setError(
-        e instanceof Error
-          ? e.message
-          : "デッキ内容の読み込みに失敗しました"
-      );
-    }
-  }
-
   if (mode === "builder") {
     return (
       <DeckBuilder
@@ -393,14 +322,6 @@ export default function DeckSelect() {
     borderRadius: "8px",
   };
 
-  const buttonStyle: CSSProperties = {
-    width: "100%",
-    marginTop: "8px",
-    padding: "8px",
-    borderRadius: "8px",
-    cursor: "pointer",
-  };
-
   return (
     <div
       style={{
@@ -475,12 +396,6 @@ export default function DeckSelect() {
             )}
           </select>
 
-          <button
-            onClick={() => openPreview("player1")}
-            style={buttonStyle}
-          >
-            デッキ内容確認
-          </button>
         </div>
 
         <div style={{ marginBottom: "28px" }}>
@@ -516,12 +431,6 @@ export default function DeckSelect() {
             )}
           </select>
 
-          <button
-            onClick={() => openPreview("player2")}
-            style={buttonStyle}
-          >
-            デッキ内容確認
-          </button>
         </div>
 
         {error && (
