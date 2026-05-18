@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
-  base: "/onepiece-card-local/",
+  base: "/trading-card-local/",
 
   plugins: [
     react(),
@@ -15,8 +15,8 @@ export default defineConfig({
         name: "ONE PIECE CARD LOCAL",
         short_name: "OPCG",
 
-        start_url: "/onepiece-card-local/",
-        scope: "/onepiece-card-local/",
+        start_url: "/trading-card-local/",
+        scope: "/trading-card-local/",
 
         display: "standalone",
 
