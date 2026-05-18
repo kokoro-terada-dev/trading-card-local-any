@@ -1,0 +1,90 @@
+{
+  "id": "GBluffy",
+  "name": "緑青ルフィ",
+  "leader": {
+    "name": "ルフィ リーダー",
+    "image": "/cards/OP16/OP16-022.jpg",
+    "lifeCount": 4,
+    "donCount": 10
+  },
+  "cards": [
+    {
+      "name": "ルフィ",
+      "image": "/cards/OP16/OP16-034.jpg",
+      "type": "character",
+      "count": 4
+    },
+    {
+      "name": "イワンコフ",
+      "image": "/cards/OP16/OP16-026.jpg",
+      "type": "character",
+      "count": 4
+    },
+    {
+      "name": "ダズボーネス",
+      "image": "/cards/OP16/OP16-054.jpg",
+      "type": "character",
+      "count": 4
+    },
+    {
+      "name": "ボンクレー",
+      "image": "/cards/OP16/OP16-055.jpg",
+      "type": "character",
+      "count": 4
+    },
+    {
+      "name": "ギャルディーノ",
+      "image": "/cards/OP16/OP16-056.jpg",
+      "type": "character",
+      "count": 4
+    },
+    {
+      "name": "クロコダイル",
+      "image": "/cards/OP16/OP16-045.jpg",
+      "type": "character",
+      "count": 4
+    },
+    {
+      "name": "ハンコック",
+      "image": "/cards/OP16/OP16-032.jpg",
+      "type": "character",
+      "count": 4
+    },
+    {
+      "name": "ギャルディーノ",
+      "image": "/cards/ST30/ST30-014.jpg",
+      "type": "character",
+      "count": 2
+    },
+    {
+      "name": "ルフィ",
+      "image": "/cards/ST30/ST30-012.jpg",
+      "type": "character",
+      "count": 2
+    },
+    {
+      "name": "ブルック",
+      "image": "/cards/OP15/OP15-032.jpg",
+      "type": "character",
+      "count": 2
+    },
+    {
+      "name": "囚人たち",
+      "image": "/cards/OP16/OP16-042.jpg",
+      "type": "character",
+      "count": 8
+    },
+    {
+      "name": "バギー",
+      "image": "/cards/OP16/OP16-048.jpg",
+      "type": "character",
+      "count": 4
+    },
+    {
+      "name": "全開",
+      "image": "/cards/OP13/OP13-040.jpg",
+      "type": "character",
+      "count": 4
+    }
+  ]
+}

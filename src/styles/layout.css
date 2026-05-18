@@ -1,0 +1,89 @@
+:root {
+  /* 盤面全体 */
+  --op-board-width: 100%;
+  --op-board-padding: 16px;
+  --op-board-gap: 12px;
+  --op-board-inner-gap: 20px;
+
+  /* 通常カード */
+  --op-card-width: 110px;
+  --op-card-height: 154px;
+
+  /* リーダー */
+  --op-leader-width: 120px;
+  --op-leader-height: 168px;
+
+  /* デッキ/トラッシュ表示枠 */
+  --op-deck-width: 110px;
+  --op-deck-height: 155px;
+
+  /* ライフ表示枠 */
+  --op-life-width: 130px;
+  --op-life-height: 200px;
+
+  /* DON */
+  --op-don-width: 54px;
+  --op-don-height: 74px;
+  --op-don-rotated-width: 74px;
+  --op-don-rotated-height: 54px;
+
+  /* 余白 */
+  --op-character-gap: 35px;
+  --op-main-area-gap: 12px;
+  --op-don-area-gap: 50px;
+  --op-active-don-offset-left: 100px;
+  --op-trash-offset-left: 205px;
+  --op-hand-min-height: 180px;
+  --op-hand-padding: 12px;
+
+  /* 共通見た目 */
+  --op-card-radius: 8px;
+  --op-area-radius: 10px;
+  --op-area-border: 2px solid gray;
+  --op-area-border-active: 3px solid #38bdf8;
+  --op-counter-font-size: 20px;
+}
+
+/* iPhoneなど狭い画面向け。まずはここを書き換えれば全体サイズが変わる */
+@media (max-width: 767px) {
+  :root {
+    --op-board-width: 100%;
+    --op-board-padding: 2px;
+
+    --op-card-width: 58px;
+    --op-card-height: 78px;
+
+    --op-trash-width: 50px;
+    --op-trash-height: 65px;
+
+    --op-leader-width: 70px;
+    --op-leader-height: 126px;
+
+    --op-deck-width: 60px;
+    --op-deck-height: 80px;
+
+    --op-life-width: 80px;
+    --op-life-height: 100px;
+
+    --op-don-width: 42px;
+    --op-don-height: 58px;
+
+    --op-don-rotated-width: 58px;
+    --op-don-rotated-height: 42px;
+
+    --op-character-gap: 20px;
+    --op-board-gap: 4px;
+    --op-board-inner-gap: 4px;
+    --op-main-area-gap: 26px;
+
+    --op-don-area-gap: 10px;
+
+    --op-active-don-offset-left: 60px;
+
+    --op-trash-offset-left: 80px;
+
+    --op-hand-min-height: 90px;
+
+    --op-hand-padding: 4px;
+  }
+}

@@ -1,0 +1,1115 @@
+import { useMemo, useRef, useState } from "react";
+
+import type { CSSProperties } from "react";
+
+import type { DeckRecipe, LocalCardImage } from "../../types/deck";
+
+import {
+  getLocalCardImage,
+  getLocalCardImages,
+  loadCardImagesFromZip,
+} from "../../utils/localCardImages";
+
+import {
+  deleteLocalDeckRecipe,
+  getAllLocalDeckRecipes,
+  saveLocalDeckRecipe,
+} from "../../utils/localDeckStorage";
+
+type Props = {
+  onBack: () => void;
+};
+
+type ScreenMode = "list" | "edit" | "search";
+
+const buttonStyle: CSSProperties = {
+  padding: "9px 12px",
+  borderRadius: "8px",
+  border: "1px solid #475569",
+  background: "#1e293b",
+  color: "white",
+  fontWeight: 800,
+  cursor: "pointer",
+};
+
+const primaryButtonStyle: CSSProperties = {
+  ...buttonStyle,
+  background: "#2563eb",
+  border: "1px solid #60a5fa",
+};
+
+const dangerButtonStyle: CSSProperties = {
+  ...buttonStyle,
+  background: "#dc2626",
+  border: "1px solid #fca5a5",
+};
+
+function createNewRecipe(): DeckRecipe {
+  const now = new Date().toISOString();
+
+  return {
+    id: crypto.randomUUID(),
+    name: "新しいデッキ",
+    leaderCardId: null,
+    mainDeck: [],
+    donDeck: [],
+    cardTypes: {},
+    leaderLifeCount: 5,
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+function countByCardId(cards: string[]) {
+  return cards.reduce<Record<string, number>>((result, cardId) => {
+    result[cardId] = (result[cardId] ?? 0) + 1;
+    return result;
+  }, {});
+}
+
+function getCardImageUrl(cardId: string | null) {
+  if (!cardId) {
+    return null;
+  }
+
+  return getLocalCardImage(cardId)?.imageUrl ?? null;
+}
+
+function makeGroupedCards(cards: string[]) {
+  return Object.entries(countByCardId(cards)).sort((a, b) =>
+    a[0].localeCompare(b[0])
+  );
+}
+
+export default function DeckBuilder({ onBack }: Props) {
+  const [mode, setMode] = useState<ScreenMode>("list");
+
+  const [cardImages, setCardImages] = useState<LocalCardImage[]>(
+    getLocalCardImages()
+  );
+
+  const [decks, setDecks] = useState<DeckRecipe[]>(
+    getAllLocalDeckRecipes()
+  );
+
+  const [editingDeck, setEditingDeck] = useState<DeckRecipe | null>(null);
+
+  const [searchText, setSearchText] = useState("");
+
+  const [seriesFilter, setSeriesFilter] = useState("");
+
+  const [message, setMessage] = useState("");
+
+  const longPressTimer = useRef<number | null>(null);
+
+  const seriesList = useMemo(
+    () => Array.from(new Set(cardImages.map((card) => card.series))).sort(),
+    [cardImages]
+  );
+
+  const filteredCards = useMemo(() => {
+    const normalizedSearch = searchText.trim().toLowerCase();
+
+    return cardImages.filter((card) => {
+      if (seriesFilter && card.series !== seriesFilter) {
+        return false;
+      }
+
+      if (!normalizedSearch) {
+        return true;
+      }
+
+      return card.cardId.toLowerCase().includes(normalizedSearch);
+    });
+  }, [cardImages, searchText, seriesFilter]);
+
+  function refreshDecks() {
+    setDecks(getAllLocalDeckRecipes());
+  }
+
+  async function handleLoadZip(file: File | null) {
+    if (!file) {
+      return;
+    }
+
+    setMessage("画像ZIPを読み込み中...");
+
+    try {
+      const loaded = await loadCardImagesFromZip(file);
+
+      setCardImages(loaded);
+      setSearchText("");
+      setSeriesFilter("");
+
+      setMessage(
+        loaded.length > 0
+          ? `${loaded.length}枚の画像を読み込みました。`
+          : "画像が0枚です。ZIP内が cards/OP01/OP01-001.png のような構成か確認してください。"
+      );
+    } catch (e) {
+      setMessage(
+        e instanceof Error
+          ? e.message
+          : "画像ZIPの読み込みに失敗しました。"
+      );
+    }
+  }
+
+  function openNewDeck() {
+    const next = createNewRecipe();
+
+    setEditingDeck(next);
+    setMode("edit");
+    setMessage("新規デッキを作成します。");
+  }
+
+  function openExistingDeck(deck: DeckRecipe) {
+    setEditingDeck(deck);
+    setMode("edit");
+    setMessage("");
+  }
+
+  function updateEditingDeck(updater: (current: DeckRecipe) => DeckRecipe) {
+    setEditingDeck((current) => {
+      if (!current) {
+        return current;
+      }
+
+      return {
+        ...updater(current),
+        updatedAt: new Date().toISOString(),
+      };
+    });
+  }
+
+  function saveEditingDeck() {
+    if (!editingDeck) {
+      return;
+    }
+
+    const name = editingDeck.name.trim();
+
+    if (!name) {
+      setMessage("デッキ名を入力してください。");
+      return;
+    }
+
+    if (editingDeck.mainDeck.length > 50) {
+      const ok = window.confirm(
+        `メインデッキが${editingDeck.mainDeck.length}枚あります。50枚を超えていますが保存しますか？`
+      );
+
+      if (!ok) {
+        return;
+      }
+    }
+
+    const nextDeck = {
+      ...editingDeck,
+      name,
+      updatedAt: new Date().toISOString(),
+    };
+
+    saveLocalDeckRecipe(nextDeck);
+    setEditingDeck(nextDeck);
+    refreshDecks();
+    setMessage(
+      nextDeck.mainDeck.length === 50
+        ? "デッキを保存しました。"
+        : `デッキを保存しました。ただしメインデッキは${nextDeck.mainDeck.length}枚です。デッキ選択画面には50枚のデッキだけ表示されます。`
+    );
+  }
+
+  function deleteDeck(deckId: string) {
+    const ok = window.confirm("このデッキを削除しますか？");
+
+    if (!ok) {
+      return;
+    }
+
+    deleteLocalDeckRecipe(deckId);
+    refreshDecks();
+    setMessage("デッキを削除しました。");
+  }
+
+  function addCardToMain(cardId: string) {
+    const addCount = 4;
+
+    updateEditingDeck((current) => ({
+      ...current,
+      mainDeck: [
+        ...current.mainDeck,
+        ...Array.from({ length: addCount }, () => cardId),
+      ],
+      cardTypes: {
+        ...current.cardTypes,
+        [cardId]: current.cardTypes[cardId] ?? "character",
+      },
+    }));
+
+    setMessage(`${cardId} を${addCount}枚追加しました。`);
+  }
+
+  function setCardAsLeader(cardId: string) {
+    updateEditingDeck((current) => ({
+      ...current,
+      leaderCardId: cardId,
+      cardTypes: {
+        ...current.cardTypes,
+        [cardId]: "leader",
+      },
+    }));
+
+    setMessage(`${cardId} をリーダーに設定しました。`);
+  }
+
+  function addCardToDon(cardId: string) {
+    const addCount = editingDeck
+      ? Math.min(10 - editingDeck.donDeck.length, 10)
+      : 0;
+
+    if (addCount <= 0) {
+      setMessage("DONは10枚までです。");
+      return;
+    }
+
+    updateEditingDeck((current) => ({
+      ...current,
+      donDeck: [
+        ...current.donDeck,
+        ...Array.from({ length: addCount }, () => cardId),
+      ],
+      cardTypes: {
+        ...current.cardTypes,
+        [cardId]: "don",
+      },
+    }));
+
+    setMessage(`${cardId} をDONに${addCount}枚追加しました。`);
+  }
+
+  function removeOneFromMain(cardId: string) {
+    updateEditingDeck((current) => {
+      const index = current.mainDeck.indexOf(cardId);
+
+      if (index === -1) {
+        return current;
+      }
+
+      const next = [...current.mainDeck];
+      next.splice(index, 1);
+
+      return {
+        ...current,
+        mainDeck: next,
+      };
+    });
+  }
+
+  function removeAllFromMain(cardId: string) {
+    updateEditingDeck((current) => ({
+      ...current,
+      mainDeck: current.mainDeck.filter((x) => x !== cardId),
+    }));
+  }
+
+  function removeOneFromDon(cardId: string) {
+    updateEditingDeck((current) => {
+      const index = current.donDeck.indexOf(cardId);
+
+      if (index === -1) {
+        return current;
+      }
+
+      const next = [...current.donDeck];
+      next.splice(index, 1);
+
+      return {
+        ...current,
+        donDeck: next,
+      };
+    });
+  }
+
+  function removeAllFromDon(cardId: string) {
+    updateEditingDeck((current) => ({
+      ...current,
+      donDeck: current.donDeck.filter((x) => x !== cardId),
+    }));
+  }
+
+  function setMainCardCount(cardId: string, nextCount: number) {
+    updateEditingDeck((current) => {
+      const currentType = current.cardTypes[cardId] ?? "character";
+
+      return {
+        ...current,
+        mainDeck: [
+          ...current.mainDeck.filter((x) => x !== cardId),
+          ...Array.from({ length: nextCount }, () => cardId),
+        ],
+        cardTypes: {
+          ...current.cardTypes,
+          [cardId]: currentType,
+        },
+      };
+    });
+  }
+
+  function setDonCardCount(cardId: string, nextCount: number) {
+    updateEditingDeck((current) => ({
+      ...current,
+      donDeck: [
+        ...current.donDeck.filter((x) => x !== cardId),
+        ...Array.from({ length: nextCount }, () => cardId),
+      ],
+      cardTypes: {
+        ...current.cardTypes,
+        [cardId]: "don",
+      },
+    }));
+  }
+
+  function askCardCount(
+    cardId: string,
+    currentCount: number,
+    onSetCount: (nextCount: number) => void
+  ) {
+    const input = window.prompt(
+      `${cardId} の枚数を入力してください。0にすると削除します。`,
+      String(currentCount)
+    );
+
+    if (input === null) {
+      return;
+    }
+
+    const nextCount = Number(input);
+
+    if (!Number.isInteger(nextCount) || nextCount < 0) {
+      setMessage("枚数は0以上の整数で入力してください。");
+      return;
+    }
+
+    onSetCount(nextCount);
+    setMessage(`${cardId} を${nextCount}枚に変更しました。`);
+  }
+
+  function clearLongPressTimer() {
+    if (longPressTimer.current !== null) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }
+
+  function renderImageIcon(cardId: string | null, size = 58) {
+    const imageUrl = getCardImageUrl(cardId);
+
+    if (!cardId || !imageUrl) {
+      return (
+        <div
+          style={{
+            width: `${size}px`,
+            height: `${Math.round(size * 1.4)}px`,
+            borderRadius: "8px",
+            background: "#0f172a",
+            border: "1px solid #475569",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            color: "#94a3b8",
+            fontSize: "10px",
+            flexShrink: 0,
+          }}
+        >
+          no img
+        </div>
+      );
+    }
+
+    return (
+      <img
+        src={imageUrl}
+        draggable={false}
+        style={{
+          width: `${size}px`,
+          height: "auto",
+          borderRadius: "8px",
+          display: "block",
+          flexShrink: 0,
+        }}
+      />
+    );
+  }
+
+  function renderCountIcon(
+    cardId: string,
+    count: number,
+    onMinus: () => void,
+    onRemoveAll: () => void,
+    onSetCount: (nextCount: number) => void
+  ) {
+    return (
+      <div
+        key={cardId}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          askCardCount(cardId, count, onSetCount);
+        }}
+        onTouchStart={() => {
+          clearLongPressTimer();
+
+          longPressTimer.current = window.setTimeout(() => {
+            askCardCount(cardId, count, onSetCount);
+          }, 550);
+        }}
+        onTouchMove={clearLongPressTimer}
+        onTouchEnd={clearLongPressTimer}
+        onTouchCancel={clearLongPressTimer}
+        style={{
+          position: "relative",
+          width: "64px",
+          margin: "4px",
+          touchAction: "manipulation",
+        }}
+      >
+        <button
+          onClick={onMinus}
+          style={{
+            padding: 0,
+            border: "none",
+            background: "transparent",
+            cursor: "pointer",
+          }}
+        >
+          {renderImageIcon(cardId, 64)}
+        </button>
+
+        <div
+          style={{
+            position: "absolute",
+            right: "-2px",
+            bottom: "-2px",
+            minWidth: "24px",
+            height: "24px",
+            borderRadius: "999px",
+            background: "#facc15",
+            color: "#111827",
+            border: "2px solid white",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            fontSize: "14px",
+            fontWeight: 900,
+            boxShadow: "0 0 8px rgba(0,0,0,0.8)",
+            pointerEvents: "none",
+          }}
+        >
+          ×{count}
+        </div>
+
+        <button
+          onClick={onRemoveAll}
+          style={{
+            position: "absolute",
+            left: "-4px",
+            top: "-4px",
+            width: "22px",
+            height: "22px",
+            borderRadius: "999px",
+            border: "1px solid white",
+            background: "#dc2626",
+            color: "white",
+            fontSize: "12px",
+            fontWeight: 900,
+            padding: 0,
+          }}
+        >
+          ×
+        </button>
+      </div>
+    );
+  }
+
+  if (mode === "list") {
+    return (
+      <div
+        style={{
+          height: "100dvh",
+          background: "#0f172a",
+          color: "white",
+          padding: "12px",
+          boxSizing: "border-box",
+          overflowY: "auto",
+          overflowX: "hidden",
+          WebkitOverflowScrolling: "touch",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "720px",
+            margin: "0 auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: "12px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <h1 style={{ margin: 0, fontSize: "22px" }}>デッキ一覧</h1>
+
+            <button style={buttonStyle} onClick={onBack}>
+              トップへ戻る
+            </button>
+          </div>
+
+          <div
+            style={{
+              background: "#1e293b",
+              borderRadius: "12px",
+              padding: "10px",
+              display: "flex",
+              gap: "8px",
+              flexWrap: "wrap",
+              alignItems: "center",
+            }}
+          >
+            <label
+              style={{
+                ...buttonStyle,
+                display: "inline-flex",
+                alignItems: "center",
+              }}
+            >
+              画像ZIP読込
+              <input
+                type="file"
+                accept=".zip"
+                onChange={(e) => {
+                  handleLoadZip(e.target.files?.[0] ?? null);
+                  e.currentTarget.value = "";
+                }}
+                style={{ display: "none" }}
+              />
+            </label>
+
+            <button style={primaryButtonStyle} onClick={openNewDeck}>
+              新規作成
+            </button>
+          </div>
+
+          {message && (
+            <div
+              style={{
+                background: "#334155",
+                padding: "8px 10px",
+                borderRadius: "8px",
+              }}
+            >
+              {message}
+            </div>
+          )}
+
+          {decks.length === 0 ? (
+            <div
+              style={{
+                background: "#1e293b",
+                borderRadius: "12px",
+                padding: "16px",
+                color: "#cbd5e1",
+              }}
+            >
+              作成済みデッキはありません。「新規作成」から作ってください。
+            </div>
+          ) : (
+            decks.map((deck) => (
+              <div
+                key={deck.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  background: "#1e293b",
+                  padding: "10px",
+                  borderRadius: "12px",
+                  border: "1px solid #475569",
+                }}
+              >
+                {renderImageIcon(deck.leaderCardId, 54)}
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontWeight: 900,
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {deck.name}
+                  </div>
+
+                  <div style={{ fontSize: "12px", color: "#cbd5e1" }}>
+                    メイン {deck.mainDeck.length}/50 / DON {deck.donDeck.length}/10
+                  </div>
+                </div>
+
+                <button
+                  style={primaryButtonStyle}
+                  onClick={() => openExistingDeck(deck)}
+                >
+                  編集
+                </button>
+
+                <button
+                  style={dangerButtonStyle}
+                  onClick={() => deleteDeck(deck.id)}
+                >
+                  削除
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (!editingDeck) {
+    return null;
+  }
+
+  const groupedMain = makeGroupedCards(editingDeck.mainDeck);
+  const groupedDon = makeGroupedCards(editingDeck.donDeck);
+
+  if (mode === "edit") {
+    return (
+      <div
+        style={{
+          height: "100dvh",
+          background: "#0f172a",
+          color: "white",
+          padding: "12px",
+          boxSizing: "border-box",
+          overflowY: "auto",
+          overflowX: "hidden",
+          WebkitOverflowScrolling: "touch",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "840px",
+            margin: "0 auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: "12px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "8px",
+            }}
+          >
+            <h1 style={{ margin: 0, fontSize: "20px" }}>デッキ編集</h1>
+
+            <button
+              style={buttonStyle}
+              onClick={() => {
+                refreshDecks();
+                setMode("list");
+              }}
+            >
+              一覧へ
+            </button>
+          </div>
+
+          <div
+            style={{
+              background: "#1e293b",
+              borderRadius: "12px",
+              padding: "10px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+            }}
+          >
+            <input
+              value={editingDeck.name}
+              onChange={(e) =>
+                updateEditingDeck((current) => ({
+                  ...current,
+                  name: e.target.value,
+                }))
+              }
+              placeholder="デッキ名"
+              style={{
+                width: "100%",
+                boxSizing: "border-box",
+                padding: "10px",
+                borderRadius: "8px",
+                border: "1px solid #475569",
+                fontSize: "16px",
+              }}
+            />
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "8px",
+              }}
+            >
+              <button style={primaryButtonStyle} onClick={saveEditingDeck}>
+                保存
+              </button>
+
+              <button
+                style={buttonStyle}
+                onClick={() => {
+                  setSearchText("");
+                  setSeriesFilter("");
+                  setMode("search");
+                }}
+              >
+                カード検索
+              </button>
+            </div>
+
+            <div style={{ fontSize: "12px", color: "#cbd5e1" }}>
+              リーダー {editingDeck.leaderCardId ?? "未設定"} / メイン {editingDeck.mainDeck.length}/50 / DON {editingDeck.donDeck.length}/10
+            </div>
+          </div>
+
+          {message && (
+            <div
+              style={{
+                background: "#334155",
+                padding: "8px 10px",
+                borderRadius: "8px",
+              }}
+            >
+              {message}
+            </div>
+          )}
+
+          <section
+            style={{
+              background: "#1e293b",
+              borderRadius: "12px",
+              padding: "10px",
+            }}
+          >
+            <h2 style={{ margin: "0 0 8px", fontSize: "16px" }}>リーダー</h2>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              {renderImageIcon(editingDeck.leaderCardId, 72)}
+
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 900 }}>
+                  {editingDeck.leaderCardId ?? "未設定"}
+                </div>
+
+                <label style={{ fontSize: "12px", color: "#cbd5e1" }}>
+                  ライフ
+                  <input
+                    type="number"
+                    min={1}
+                    max={10}
+                    value={editingDeck.leaderLifeCount}
+                    onChange={(e) =>
+                      updateEditingDeck((current) => ({
+                        ...current,
+                        leaderLifeCount: Number(e.target.value),
+                      }))
+                    }
+                    style={{
+                      width: "56px",
+                      marginLeft: "8px",
+                      padding: "4px",
+                      borderRadius: "6px",
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
+          </section>
+
+          <section
+            style={{
+              background: "#1e293b",
+              borderRadius: "12px",
+              padding: "10px",
+            }}
+          >
+            <h2 style={{ margin: "0 0 8px", fontSize: "16px" }}>
+              メインデッキ {editingDeck.mainDeck.length}/50
+            </h2>
+
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "8px",
+              }}
+            >
+              {groupedMain.length === 0 ? (
+                <div style={{ color: "#cbd5e1" }}>カード未追加</div>
+              ) : (
+                groupedMain.map(([cardId, count]) =>
+                  renderCountIcon(
+                    cardId,
+                    count,
+                    () => removeOneFromMain(cardId),
+                    () => removeAllFromMain(cardId),
+                    (nextCount) => setMainCardCount(cardId, nextCount)
+                  )
+                )
+              )}
+            </div>
+          </section>
+
+          <section
+            style={{
+              background: "#1e293b",
+              borderRadius: "12px",
+              padding: "10px",
+            }}
+          >
+            <h2 style={{ margin: "0 0 8px", fontSize: "16px" }}>
+              DON {editingDeck.donDeck.length}/10
+            </h2>
+
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+              {groupedDon.length === 0 ? (
+                <div style={{ color: "#cbd5e1" }}>DON未追加</div>
+              ) : (
+                groupedDon.map(([cardId, count]) =>
+                  renderCountIcon(
+                    cardId,
+                    count,
+                    () => removeOneFromDon(cardId),
+                    () => removeAllFromDon(cardId),
+                    (nextCount) => setDonCardCount(cardId, nextCount)
+                  )
+                )
+              )}
+            </div>
+          </section>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      style={{
+        height: "100dvh",
+        background: "#0f172a",
+        color: "white",
+        padding: 0,
+        boxSizing: "border-box",
+        overflowY: "auto",
+        overflowX: "hidden",
+        WebkitOverflowScrolling: "touch",
+      }}
+    >
+      <div
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 1000,
+          background: "#0f172a",
+          padding: "12px",
+          borderBottom: "1px solid #475569",
+          display: "flex",
+          flexDirection: "column",
+          gap: "10px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
+          <h1 style={{ margin: 0, fontSize: "20px" }}>カード検索</h1>
+
+          <button style={buttonStyle} onClick={() => setMode("edit")}>
+            編集へ戻る
+          </button>
+        </div>
+
+        <div
+          style={{
+            background: "#1e293b",
+            borderRadius: "12px",
+            padding: "10px",
+            display: "flex",
+            gap: "8px",
+          }}
+        >
+          <input
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            placeholder="カードID検索 例 OP01-001"
+            style={{
+              flex: 1,
+              minWidth: 0,
+              padding: "10px",
+              borderRadius: "8px",
+              border: "1px solid #475569",
+            }}
+          />
+
+          <select
+            value={seriesFilter}
+            onChange={(e) => setSeriesFilter(e.target.value)}
+            style={{
+              width: "94px",
+              padding: "10px",
+              borderRadius: "8px",
+              border: "1px solid #475569",
+            }}
+          >
+            <option value="">全OP</option>
+
+            {seriesList.map((series) => (
+              <option key={series} value={series}>
+                {series}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {message && (
+          <div
+            style={{
+              background: "#334155",
+              padding: "8px 10px",
+              borderRadius: "8px",
+            }}
+          >
+            {message}
+          </div>
+        )}
+      </div>
+
+      <div
+        style={{
+          maxWidth: "840px",
+          margin: "0 auto",
+          padding: "12px",
+          boxSizing: "border-box",
+        }}
+      >
+        {cardImages.length === 0 ? (
+          <div
+            style={{
+              background: "#1e293b",
+              borderRadius: "12px",
+              padding: "16px",
+              color: "#cbd5e1",
+            }}
+          >
+            カード画像が未読込です。デッキ一覧画面で画像ZIPを読み込んでください。
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(92px, 1fr))",
+              gap: "10px",
+            }}
+          >
+            {filteredCards.map((card) => (
+              <div
+                key={card.path}
+                style={{
+                  background: "#1e293b",
+                  borderRadius: "10px",
+                  padding: "6px",
+                  border: "1px solid #475569",
+                }}
+              >
+                <img
+                  src={card.imageUrl}
+                  draggable={false}
+                  style={{
+                    width: "100%",
+                    borderRadius: "8px",
+                    display: "block",
+                  }}
+                />
+
+                <div
+                  style={{
+                    fontSize: "10px",
+                    marginTop: "4px",
+                    overflow: "hidden",
+                    whiteSpace: "nowrap",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {card.cardId}
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr",
+                    gap: "5px",
+                    marginTop: "6px",
+                  }}
+                >
+                  <button
+                    style={{
+                      ...primaryButtonStyle,
+                      padding: "7px 4px",
+                      fontSize: "11px",
+                    }}
+                    onClick={() => addCardToMain(card.cardId)}
+                  >
+                    4枚追加
+                  </button>
+
+                  <button
+                    style={{
+                      ...buttonStyle,
+                      padding: "7px 4px",
+                      fontSize: "11px",
+                    }}
+                    onClick={() => setCardAsLeader(card.cardId)}
+                  >
+                    リーダー
+                  </button>
+
+                  <button
+                    style={{
+                      ...buttonStyle,
+                      padding: "7px 4px",
+                      fontSize: "11px",
+                    }}
+                    onClick={() => addCardToDon(card.cardId)}
+                  >
+                    DON追加
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "id": "BYteach",
+    "name": "黒黄ティーチ",
+    "path": "/decks/teach.json"
+  },
+  {
+    "id": "Penel",
+    "name": "紫エネル",
+    "path": "/decks/enel.json"
+  },
+  {
+    "id": "GBluffy",
+    "name": "緑青ルフィ",
+    "path": "/decks/luffy.json"
+  }
+]

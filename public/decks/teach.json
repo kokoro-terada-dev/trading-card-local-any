@@ -1,0 +1,96 @@
+{
+  "id": "BYteach",
+  "name": "黒黄ティーチ",
+  "leader": {
+    "name": "ティーチ リーダー",
+    "image": "/cards/OP16/OP16-080.jpg",
+    "lifeCount": 4,
+    "donCount": 10
+  },
+  "cards": [
+    {
+      "name": "ヴァンオーガー",
+      "image": "/cards/OP16/OP16-103.jpg",
+      "type": "character",
+      "count": 2
+    },
+    {
+      "name": "デボン",
+      "image": "/cards/OP16/OP16-104.jpg",
+      "type": "character",
+      "count": 4
+    },
+    {
+      "name": "サンファンウルフ",
+      "image": "/cards/OP16/OP16-106.jpg",
+      "type": "character",
+      "count": 2
+    },
+    {
+      "name": "バージェス",
+      "image": "/cards/OP16/OP16-107.jpg",
+      "type": "character",
+      "count": 4
+    },
+    {
+      "name": "シリュウ",
+      "image": "/cards/OP16/OP16-108.jpg",
+      "type": "character",
+      "count": 4
+    },
+    {
+      "name": "ドクQ",
+      "image": "/cards/OP16/OP16-109.jpg",
+      "type": "character",
+      "count": 4
+    },
+    {
+      "name": "バスコ",
+      "image": "/cards/OP16/OP16-110.jpg",
+      "type": "character",
+      "count": 4
+    },
+    {
+      "name": "ティーチ",
+      "image": "/cards/OP16/OP16-119.jpg",
+      "type": "character",
+      "count": 4
+    },
+    {
+      "name": "ゼハハハ",
+      "image": "/cards/OP16/OP16-116.jpg",
+      "type": "character",
+      "count": 4
+    },
+    {
+      "name": "俺の時代だァ",
+      "image": "/cards/OP09/OP09-096.jpg",
+      "type": "character",
+      "count": 4
+    },
+    {
+      "name": "ハチノス",
+      "image": "/cards/OP09/OP09-099.jpg",
+      "type": "character",
+      "count": 4
+    },
+    {
+      "name": "ティーチ",
+      "image": "/cards/OP09/OP09-093.jpg",
+      "type": "character",
+      "count": 4
+    },
+    {
+      "name": "ハンコック",
+      "image": "/cards/OP14/OP14-112.jpg",
+      "type": "character",
+      "count": 4
+    },
+    {
+      "name": "バージェス",
+      "image": "/cards/OP09/OP09-086.jpg",
+      "type": "character",
+      "count": 2
+    }
+  ]
+}
