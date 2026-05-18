@@ -374,8 +374,8 @@ export default function Board({
                 activeCard.from === "donDeck" ||
                   activeCard.from === "activeDon" ||
                   activeCard.from === "restDon"
-                  ? "70px"
-                  : "110px",
+                  ? "58px"
+                  : "78px",
 
               height: "auto",
               borderRadius: "8px",
