@@ -1,16 +1,16 @@
 .power-modifier {
   position: absolute;
-  top: -22px;
+  top: calc(var(--op-card-height) * -0.18);
   left: 50%;
   transform: translateX(-50%);
 
   background: #facc15;
   color: #111827;
 
-  padding: 2px 8px;
+  padding: 2px clamp(5px, 2vw, 8px);
   border-radius: 999px;
 
-  font-size: 14px;
+  font-size: clamp(10px, 3.5vw, 14px);
   font-weight: bold;
 
   z-index: 60;
@@ -19,12 +19,12 @@
 .status-label {
   position: absolute;
 
-  top: 25px;
+  top: calc(var(--op-card-height) * 0.24);
   left: 50%;
 
   transform: translateX(-50%);
 
-  min-width: 72px;
+  min-width: calc(var(--op-card-width) * 1.1);
 
   padding: 2px 8px;
 
@@ -36,7 +36,7 @@
 
   border: 2px solid white;
 
-  font-size: 10px;
+  font-size: clamp(8px, 2.6vw, 10px);
 
   font-weight: 900;
 
@@ -104,23 +104,14 @@
 /* 通常カード：手札・キャラクター・ステージなど */
 .game-card-hand,
 .game-card-character,
-.game-card-stage,
-.game-card-life {
+.game-card-stage {
   width: calc(var(--op-card-width) * 0.93);
   height: calc(var(--op-card-height) * 0.95);
 }
 
 .game-card-leader {
-  width: var(--leader-w);
-  height: var(--leader-h);
-}
-
-.game-card-don,
-.game-card-donDeck,
-.game-card-activeDon,
-.game-card-restDon {
-  width: var(--don-w);
-  height: var(--don-h);
+  width: var(--op-leader-width);
+  height: var(--op-leader-height);
 }
 
 .game-card-donDeck,

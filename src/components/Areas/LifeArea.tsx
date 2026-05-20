@@ -93,9 +93,9 @@ export default function LifeArea({
           style={{
             position: "absolute",
 
-            left: "14px",
+            left: "calc(var(--op-life-width) * 0.18)",
 
-            top: `${index * 10 - 10}px`,
+            top: `calc(${index} * var(--op-life-stack-gap) + var(--op-life-stack-offset-y))`,
 
             zIndex: cards.length - index,
           }}

@@ -21,6 +21,8 @@ import type {
 
 import type { CardData } from "../../types/card";
 
+import { GAME_LAYOUT } from "../../layout/gameLayout";
+
 type Props = {
   resetToDeckSelect: () => void;
 };
@@ -315,8 +317,9 @@ export default function Board({
               gap: "4px",
               padding: "2px 4px",
 
-              fontSize: "11px",
-              marginTop: "-20px",
+              fontSize: "clamp(10px, 2.8vw, 12px)",
+              minHeight: "28px",
+              marginTop: 0,
             }}
           >
             <button onClick={() => refreshPlayer(0)}>
@@ -379,10 +382,10 @@ export default function Board({
             style={{
               width:
                 activeCard.from === "donDeck" ||
-                  activeCard.from === "activeDon" ||
-                  activeCard.from === "restDon"
-                  ? "58px"
-                  : "78px",
+                activeCard.from === "activeDon" ||
+                activeCard.from === "restDon"
+                  ? GAME_LAYOUT.css.donWidth
+                  : GAME_LAYOUT.css.cardWidth,
 
               height: "auto",
               borderRadius: "8px",

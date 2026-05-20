@@ -84,6 +84,11 @@ export default function PlayerBoard({
         display: "flex",
         flexDirection: "column",
         height: "100%",
+        minHeight: 0,
+        width: "100%",
+        padding: GAME_LAYOUT.css.boardPadding,
+        boxSizing: "border-box",
+        overflow: "hidden",
       }}
     >
       {reversed ? (
@@ -91,6 +96,8 @@ export default function PlayerBoard({
           <div
             style={{
               marginTop: 0,
+              marginBottom: "var(--op-top-hand-gap)",
+              flexShrink: 0,
             }}
           >
             <HandArea
@@ -105,8 +112,9 @@ export default function PlayerBoard({
               display: "flex",
               justifyContent: "center",
               gap: GAME_LAYOUT.css.boardGap,
-              marginTop: GAME_LAYOUT.css.boardInnerGap,
+              marginTop: 0,
               alignItems: "center",
+              flexShrink: 0,
             }}
           >
             <DonArea
@@ -139,7 +147,8 @@ export default function PlayerBoard({
               display: "flex",
               justifyContent: "center",
               gap: GAME_LAYOUT.css.mainAreaGap,
-              marginTop: "15px",
+              marginTop: GAME_LAYOUT.css.boardInnerGap,
+              flexShrink: 0,
             }}
           >
             <LifeArea
@@ -177,7 +186,8 @@ export default function PlayerBoard({
 
           <div
             style={{
-              marginTop: "var(--op-character-top-gap, 20px)",
+              marginTop: GAME_LAYOUT.css.boardInnerGap,
+              flexShrink: 0,
             }}
           >
             <CharacterArea
@@ -191,7 +201,8 @@ export default function PlayerBoard({
         <>
           <div
             style={{
-              marginTop: "var(--op-character-top-gap, 10px)",
+              marginTop: "var(--op-character-top-gap)",
+              flexShrink: 0,
             }}
           >
             <CharacterArea
@@ -206,7 +217,8 @@ export default function PlayerBoard({
               display: "flex",
               justifyContent: "center",
               gap: GAME_LAYOUT.css.mainAreaGap,
-              marginTop: "20px",
+              marginTop: GAME_LAYOUT.css.boardInnerGap,
+              flexShrink: 0,
             }}
           >
             <LifeArea
@@ -249,6 +261,7 @@ export default function PlayerBoard({
               gap: GAME_LAYOUT.css.boardGap,
               marginTop: GAME_LAYOUT.css.boardInnerGap,
               alignItems: "center",
+              flexShrink: 0,
             }}
           >
             <DonArea
@@ -264,7 +277,7 @@ export default function PlayerBoard({
 
             <div
               style={{
-                marginTop: "-20px",
+                marginTop: "var(--op-trash-lift)",
                 marginLeft: "var(--op-trash-offset-left, 120px)",
               }}
             >
@@ -279,6 +292,7 @@ export default function PlayerBoard({
           <div
             style={{
               marginTop: GAME_LAYOUT.css.boardInnerGap,
+              flexShrink: 0,
             }}
           >
             <HandArea
