@@ -38,15 +38,25 @@ type Props = {
 };
 
 const actionButtonStyle = {
-  fontSize: "12px",
+  fontSize: "11px",
 
-  padding: "4px 6px",
+  padding: "4px 4px",
 
-  minWidth: "100%",
+  width: "100%",
+
+  minWidth: 0,
 
   height: "32px",
 
   borderRadius: "6px",
+
+  fontWeight: 700,
+
+  whiteSpace: "nowrap",
+
+  overflow: "hidden",
+
+  textOverflow: "ellipsis",
 };
 
 export default function CardListModal({
@@ -327,8 +337,10 @@ function SortableCardRow({
           : undefined,
         transition,
         display: "flex",
-        gap: "12px",
+        gap: "8px",
         alignItems: "center",
+
+        minWidth: 0,
         background: "#334155",
         padding: "8px",
         borderRadius: "8px",
@@ -352,29 +364,15 @@ function SortableCardRow({
 
       <div
         style={{
-          width: "100px",
-
-          overflow: "hidden",
-
-          whiteSpace: "nowrap",
-
-          textOverflow: "ellipsis",
-
-        }}
-      >
-        {isOpen ? card.name : "非公開"}
-      </div>
-
-      <div
-        style={{
           display: "grid",
 
           gridTemplateColumns:
             "repeat(2, minmax(0, 1fr))",
 
-          gap: "8px",
+          gap: "6px",
 
           flex: 1,
+          minWidth: 0,
         }}
       >
         <button
