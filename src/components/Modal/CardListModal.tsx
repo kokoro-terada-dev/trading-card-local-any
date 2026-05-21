@@ -330,15 +330,29 @@ export default function CardListModal({
                 position: "fixed",
                 top: "12px",
                 right: "12px",
+
                 width: "42px",
                 height: "42px",
+
                 borderRadius: "999px",
+
                 border: "2px solid white",
+
                 background: "#dc2626",
+
                 color: "white",
+
                 fontSize: "24px",
-                alignItems: "center",
                 fontWeight: 900,
+
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+
+                lineHeight: 1,
+
+                padding: 0,
+
                 zIndex: 1000000,
               }}
             >
