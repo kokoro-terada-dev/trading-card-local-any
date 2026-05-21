@@ -337,6 +337,7 @@ export default function CardListModal({
                 background: "#dc2626",
                 color: "white",
                 fontSize: "24px",
+                alignItems: "center",
                 fontWeight: 900,
                 zIndex: 1000000,
               }}
