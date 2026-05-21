@@ -249,7 +249,7 @@ export default function DeckBuilder({
 
     setEditingDeck(next);
     setMode("edit");
-    setMessage("新規デッキを作成します。");
+    setMessage("新規デッキを作成します");
   }
 
   function openExistingDeck(deck: DeckRecipe) {

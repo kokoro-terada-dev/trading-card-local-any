@@ -38,13 +38,13 @@ type Props = {
 };
 
 const actionButtonStyle = {
-  fontSize: "10px",
+  fontSize: "12px",
 
-  padding: "2px 4px",
+  padding: "4px 6px",
 
-  minWidth: "100px",
+  minWidth: "100%",
 
-  height: "24px",
+  height: "32px",
 
   borderRadius: "6px",
 };
@@ -367,9 +367,13 @@ function SortableCardRow({
 
       <div
         style={{
-          display: "flex",
+          display: "grid",
+
+          gridTemplateColumns:
+            "repeat(2, minmax(0, 1fr))",
+
           gap: "8px",
-          flexWrap: "wrap",
+
           flex: 1,
         }}
       >
