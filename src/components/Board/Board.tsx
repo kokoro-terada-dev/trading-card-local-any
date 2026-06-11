@@ -346,7 +346,6 @@ export default function Board({
               title="上プレイヤーリフレッシュ"
               aria-label="上プレイヤーリフレッシュ"
               onClick={() => {
-                saveTurnStartSnapshot();
                 refreshPlayer(0);
               }}
             >
@@ -357,7 +356,6 @@ export default function Board({
               title="下プレイヤーリフレッシュ"
               aria-label="下プレイヤーリフレッシュ"
               onClick={() => {
-                saveTurnStartSnapshot();
                 refreshPlayer(1);
               }}
             >
@@ -370,7 +368,7 @@ export default function Board({
               onClick={undoLastAction}
               disabled={!canUndo}
             >
-              ↶
+              ◀
             </button>
 
             <button

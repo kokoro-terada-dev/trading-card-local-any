@@ -932,7 +932,10 @@ export const useGameStore =
           }
         }
 
-        return { players };
+        return {
+          players,
+          turnStartSnapshot: clonePlayers(players),
+        };
       }),
 
     moveListCardToLifeTop: (
