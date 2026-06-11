@@ -59,6 +59,26 @@ export default function Board({
       (s) => s.resetGameToMulligan
     );
 
+  const undoLastAction = useGameStore(
+    (s) => s.undoLastAction
+  );
+
+  const returnToTurnStart = useGameStore(
+    (s) => s.returnToTurnStart
+  );
+
+  const saveTurnStartSnapshot = useGameStore(
+    (s) => s.saveTurnStartSnapshot
+  );
+
+  const canUndo = useGameStore(
+    (s) => s.undoHistory.length > 0
+  );
+
+  const canReturnToTurnStart = useGameStore(
+    (s) => s.turnStartSnapshot !== null
+  );
+
   const [activeCard, setActiveCard] =
     useState<DragCardInfo | null>(null);
 
@@ -322,12 +342,36 @@ export default function Board({
               marginTop: 0,
             }}
           >
-            <button onClick={() => refreshPlayer(0)}>
+            <button
+              onClick={() => {
+                saveTurnStartSnapshot();
+                refreshPlayer(0);
+              }}
+            >
               ↑ ﾘﾌﾚｯｼｭ
             </button>
 
-            <button onClick={() => refreshPlayer(1)}>
+            <button
+              onClick={() => {
+                saveTurnStartSnapshot();
+                refreshPlayer(1);
+              }}
+            >
               ↓ ﾘﾌﾚｯｼｭ
+            </button>
+
+            <button
+              onClick={undoLastAction}
+              disabled={!canUndo}
+            >
+              一手戻し
+            </button>
+
+            <button
+              onClick={returnToTurnStart}
+              disabled={!canReturnToTurnStart}
+            >
+              ターン開始時戻し
             </button>
 
             <button

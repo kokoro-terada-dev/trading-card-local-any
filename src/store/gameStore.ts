@@ -18,6 +18,24 @@ type SelectedDonStack = {
   count: number;
 } | null;
 
+
+type PlayersSnapshot = [PlayerState, PlayerState];
+
+const MAX_HISTORY_COUNT = 30;
+
+function clonePlayers(
+  players: [PlayerState, PlayerState]
+): PlayersSnapshot {
+  return JSON.parse(JSON.stringify(players)) as PlayersSnapshot;
+}
+
+function isSamePlayers(
+  before: PlayersSnapshot,
+  after: [PlayerState, PlayerState]
+): boolean {
+  return JSON.stringify(before) === JSON.stringify(after);
+}
+
 function shuffle<T>(array: T[]): T[] {
   const copied = [...array];
 
@@ -281,17 +299,56 @@ interface GameState {
     cardId: string
   ) => void;
 
+  undoHistory: PlayersSnapshot[];
+
+  turnStartSnapshot: PlayersSnapshot | null;
+
+  undoLastAction: () => void;
+
+  saveTurnStartSnapshot: () => void;
+
+  returnToTurnStart: () => void;
+
   resetGameToMulligan: () => void;
 }
 
 export const useGameStore =
-  create<GameState>((set) => ({
+  create<GameState>((set, get) => {
+    const setWithHistory = (
+      updater: (state: GameState) => Partial<GameState>
+    ) => {
+      set((state) => {
+        const beforePlayers = clonePlayers(state.players);
+
+        const result = updater(state);
+
+        const afterPlayers = result.players ?? state.players;
+
+        if (isSamePlayers(beforePlayers, afterPlayers)) {
+          return result;
+        }
+
+        return {
+          ...result,
+          undoHistory: [
+            beforePlayers,
+            ...state.undoHistory,
+          ].slice(0, MAX_HISTORY_COUNT),
+        };
+      });
+    };
+
+    return ({
     players: [
       createPlayer([]),
       createPlayer([]),
     ],
 
     isStarted: false,
+
+    undoHistory: [],
+
+    turnStartSnapshot: null,
 
     startGame: (
       player1Deck: CardData[],
@@ -306,12 +363,16 @@ export const useGameStore =
         isStarted: true,
 
         mulliganPlayerIndex: 0,
+
+        undoHistory: [],
+
+        turnStartSnapshot: null,
       })),
 
     drawCard: (
       playerIndex: number
     ) =>
-      set((state) => {
+      setWithHistory((state) => {
         const players = [
           ...state.players,
         ] as [
@@ -336,7 +397,7 @@ export const useGameStore =
       playerIndex: number,
       cardId: string
     ) =>
-      set((state) => {
+      setWithHistory((state) => {
         const players = [
           ...state.players,
         ] as [PlayerState, PlayerState];
@@ -375,7 +436,7 @@ export const useGameStore =
       to,
       slotIndex,
     }: MoveParams) =>
-      set((state) => {
+      setWithHistory((state) => {
         const players = [
           ...state.players,
         ] as [
@@ -638,7 +699,7 @@ export const useGameStore =
       playerIndex: number,
       targetCardId: string
     ) =>
-      set((state) => {
+      setWithHistory((state) => {
         const players = [
           ...state.players,
         ] as [
@@ -691,7 +752,7 @@ export const useGameStore =
       from,
       cardId: string
     ) =>
-      set((state) => {
+      setWithHistory((state) => {
         const players = [
           ...state.players,
         ] as [
@@ -728,7 +789,7 @@ export const useGameStore =
       from,
       cardId: string
     ) =>
-      set((state) => {
+      setWithHistory((state) => {
         const players = [
           ...state.players,
         ] as [
@@ -765,7 +826,7 @@ export const useGameStore =
       from,
       cardId: string
     ) =>
-      set((state) => {
+      setWithHistory((state) => {
         const players = [
           ...state.players,
         ] as [
@@ -798,7 +859,7 @@ export const useGameStore =
       }),
 
     refreshPlayer: (playerIndex: number) =>
-      set((state) => {
+      setWithHistory((state) => {
         const players = [...state.players] as [
           PlayerState,
           PlayerState
@@ -879,7 +940,7 @@ export const useGameStore =
       from,
       cardId: string
     ) =>
-      set((state) => {
+      setWithHistory((state) => {
         const players = [...state.players] as [
           PlayerState,
           PlayerState
@@ -910,7 +971,7 @@ export const useGameStore =
       playerIndex: number,
       cardId: string
     ) =>
-      set((state) => {
+      setWithHistory((state) => {
         const players = [...state.players] as [
           PlayerState,
           PlayerState
@@ -956,7 +1017,7 @@ export const useGameStore =
       playerIndex: number,
       count: number
     ) =>
-      set((state) => {
+      setWithHistory((state) => {
         const players = [...state.players] as [
           PlayerState,
           PlayerState
@@ -977,7 +1038,7 @@ export const useGameStore =
       cardId: string,
       amount: number
     ) =>
-      set((state) => {
+      setWithHistory((state) => {
         const players = [...state.players] as [
           PlayerState,
           PlayerState
@@ -1005,7 +1066,7 @@ export const useGameStore =
       cardId: string,
       label: "アタック×" | "アクティブ×"
     ) =>
-      set((state) => {
+      setWithHistory((state) => {
         const players = [...state.players] as [
           PlayerState,
           PlayerState
@@ -1033,6 +1094,8 @@ export const useGameStore =
     resetToDeckSelect: () =>
       set(() => ({
         isStarted: false,
+        undoHistory: [],
+        turnStartSnapshot: null,
       })),
     mulligan: (playerIndex: 0 | 1) =>
       set((state) => {
@@ -1076,7 +1139,7 @@ export const useGameStore =
 
     mulliganPlayerIndex: null,
     takeDonFromDeckToActive: (playerIndex: number) =>
-      set((state) => {
+      setWithHistory((state) => {
         const players = [...state.players] as [
           PlayerState,
           PlayerState
@@ -1098,7 +1161,7 @@ export const useGameStore =
       }),
 
     takeDonFromDeckToRest: (playerIndex: number) =>
-      set((state) => {
+      setWithHistory((state) => {
         const players = [...state.players] as [
           PlayerState,
           PlayerState
@@ -1120,7 +1183,7 @@ export const useGameStore =
       }),
 
     moveActiveDonToRest: (playerIndex: number) =>
-      set((state) => {
+      setWithHistory((state) => {
         const players = [...state.players] as [
           PlayerState,
           PlayerState
@@ -1142,7 +1205,7 @@ export const useGameStore =
       }),
 
     moveRestDonToActive: (playerIndex: number) =>
-      set((state) => {
+      setWithHistory((state) => {
         const players = [...state.players] as [
           PlayerState,
           PlayerState
@@ -1169,7 +1232,7 @@ export const useGameStore =
       fromArea: "activeDon" | "restDon",
       targetCardId: string
     ) =>
-      set((state) => {
+      setWithHistory((state) => {
         const players = [...state.players] as [
           PlayerState,
           PlayerState
@@ -1214,7 +1277,7 @@ export const useGameStore =
       playerIndex: number,
       targetCardId: string
     ) =>
-      set((state) => {
+      setWithHistory((state) => {
         const players = [...state.players] as [
           PlayerState,
           PlayerState
@@ -1254,7 +1317,7 @@ export const useGameStore =
       playerIndex: number,
       targetCardId: string
     ) =>
-      set((state) => {
+      setWithHistory((state) => {
         const players = [...state.players] as [
           PlayerState,
           PlayerState
@@ -1295,7 +1358,7 @@ export const useGameStore =
       fromArea: "donDeck" | "activeDon" | "restDon",
       toArea: "donDeck" | "activeDon" | "restDon"
     ) =>
-      set((state) => {
+      setWithHistory((state) => {
         const players = [...state.players] as [
           PlayerState,
           PlayerState
@@ -1341,7 +1404,7 @@ export const useGameStore =
       activeId,
       overId
     ) =>
-      set((state) => {
+      setWithHistory((state) => {
         const players = [...state.players] as [
           PlayerState,
           PlayerState
@@ -1436,7 +1499,7 @@ export const useGameStore =
     moveSelectedDonStack: (
       toArea: DonAreaKey
     ) =>
-      set((state) => {
+      setWithHistory((state) => {
         const selected = state.selectedDonStack;
 
         if (!selected) {
@@ -1503,7 +1566,7 @@ export const useGameStore =
     attachSelectedDonStack: (
       targetCardId: string
     ) =>
-      set((state) => {
+      setWithHistory((state) => {
         const selected = state.selectedDonStack;
 
         if (!selected) {
@@ -1563,7 +1626,7 @@ export const useGameStore =
       playerIndex,
       cardId
     ) =>
-      set((state) => {
+      setWithHistory((state) => {
         const players = [...state.players] as [
           PlayerState,
           PlayerState
@@ -1618,6 +1681,43 @@ export const useGameStore =
 
         return { players };
       }),
+    undoLastAction: () => {
+      const snapshot = get().undoHistory[0];
+
+      if (!snapshot) {
+        return;
+      }
+
+      set((state) => ({
+        players: clonePlayers(snapshot),
+        undoHistory: state.undoHistory.slice(1),
+        selectedDonStack: null,
+      }));
+    },
+
+    saveTurnStartSnapshot: () => {
+      set((state) => ({
+        turnStartSnapshot: clonePlayers(state.players),
+      }));
+    },
+
+    returnToTurnStart: () => {
+      const snapshot = get().turnStartSnapshot;
+
+      if (!snapshot) {
+        return;
+      }
+
+      set((state) => ({
+        players: clonePlayers(snapshot),
+        undoHistory: [
+          clonePlayers(state.players),
+          ...state.undoHistory,
+        ].slice(0, MAX_HISTORY_COUNT),
+        selectedDonStack: null,
+      }));
+    },
+
     resetGameToMulligan: () => {
       set((state) => {
         const resetPlayer = (player: PlayerState): PlayerState => {
@@ -1729,7 +1829,10 @@ export const useGameStore =
             resetPlayer(state.players[1]),
           ],
           selectedDonStack: null,
+          undoHistory: [],
+          turnStartSnapshot: null,
         };
       });
     },
-  }));
+  });
+});
