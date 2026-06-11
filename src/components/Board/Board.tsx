@@ -67,10 +67,6 @@ export default function Board({
     (s) => s.returnToTurnStart
   );
 
-  const saveTurnStartSnapshot = useGameStore(
-    (s) => s.saveTurnStartSnapshot
-  );
-
   const canUndo = useGameStore(
     (s) => s.undoHistory.length > 0
   );
