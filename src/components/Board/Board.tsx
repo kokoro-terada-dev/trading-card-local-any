@@ -343,35 +343,43 @@ export default function Board({
             }}
           >
             <button
+              title="上プレイヤーリフレッシュ"
+              aria-label="上プレイヤーリフレッシュ"
               onClick={() => {
                 saveTurnStartSnapshot();
                 refreshPlayer(0);
               }}
             >
-              ↑ ﾘﾌﾚｯｼｭ
+              ⬆️
             </button>
 
             <button
+              title="下プレイヤーリフレッシュ"
+              aria-label="下プレイヤーリフレッシュ"
               onClick={() => {
                 saveTurnStartSnapshot();
                 refreshPlayer(1);
               }}
             >
-              ↓ ﾘﾌﾚｯｼｭ
+              ⬇️
             </button>
 
             <button
+              title="一手戻し"
+              aria-label="一手戻し"
               onClick={undoLastAction}
               disabled={!canUndo}
             >
-              一手戻し
+              ↶
             </button>
 
             <button
+              title="ターン開始時に戻す"
+              aria-label="ターン開始時に戻す"
               onClick={returnToTurnStart}
               disabled={!canReturnToTurnStart}
             >
-              ターン開始時戻し
+              ⏮
             </button>
 
             <button
@@ -426,8 +434,8 @@ export default function Board({
             style={{
               width:
                 activeCard.from === "donDeck" ||
-                activeCard.from === "activeDon" ||
-                activeCard.from === "restDon"
+                  activeCard.from === "activeDon" ||
+                  activeCard.from === "restDon"
                   ? GAME_LAYOUT.css.donWidth
                   : GAME_LAYOUT.css.cardWidth,
 
