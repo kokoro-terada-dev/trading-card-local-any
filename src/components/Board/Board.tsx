@@ -409,7 +409,7 @@ export default function Board({
                 }
               }}
             >
-              リセット
+              reset
             </button>
 
             <button
