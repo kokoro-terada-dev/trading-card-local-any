@@ -8,7 +8,10 @@ import { useGameStore } from "../../store/gameStore";
 
 import { useDraggable } from "@dnd-kit/core";
 
-import { getDonDeckImageUrl } from "../../utils/localCardImages";
+import {
+  getDonDeckImageUrl,
+  getDonImageUrl,
+} from "../../utils/localCardImages";
 
 import { createPortal } from "react-dom";
 
@@ -543,15 +546,30 @@ function DonBadge({
   playerIndex: number;
   overlay: boolean;
 }) {
-  const { attributes, listeners, setNodeRef } = useDraggable({
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `don-badge-${card.id}`,
     disabled: overlay,
     data: {
+      card: {
+        id: `attached-don-${card.id}`,
+        name: "DON",
+        image: getDonImageUrl(),
+        type: "don",
+        rotated: false,
+        attachedDonCount: 0,
+        isFaceUp: true,
+      },
+      cardId: `attached-don-${card.id}`,
+      from: "activeDon",
       type: "attached-don",
       targetCardId: card.id,
       playerIndex,
     },
   });
+
+  const displayAttachedDonCount = isDragging
+    ? Math.max(0, card.attachedDonCount - 1)
+    : card.attachedDonCount;
 
   return (
     <div
@@ -579,9 +597,12 @@ function DonBadge({
         boxShadow: "0 0 10px rgba(0,0,0,0.6)",
         zIndex: 999,
         cursor: "pointer",
+        opacity: displayAttachedDonCount > 0 ? 1 : 0,
       }}
     >
-      ﾄﾞﾝ!!×{card.attachedDonCount}
+      {displayAttachedDonCount > 0
+        ? `ドン!!×${displayAttachedDonCount}`
+        : ""}
     </div>
   );
 }

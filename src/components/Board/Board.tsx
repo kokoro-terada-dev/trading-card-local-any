@@ -78,6 +78,9 @@ export default function Board({
   const [activeCard, setActiveCard] =
     useState<DragCardInfo | null>(null);
 
+  const [isDraggingAttachedDon, setIsDraggingAttachedDon] =
+    useState(false);
+
   const [, setPreviewImage] =
     useState<string | null>(null);
 
@@ -109,30 +112,36 @@ export default function Board({
       return;
     }
 
-    const player = players[data.playerIndex];
+    setIsDraggingAttachedDon(data.type === "attached-don");
 
-    if (!player) {
-      return;
+    let card = data.card as CardData | undefined;
+
+    if (!card) {
+      const player = players[data.playerIndex];
+
+      if (!player) {
+        return;
+      }
+
+      const allCards: CardData[] = [
+        ...player.hand,
+        ...player.deck,
+        ...player.trash,
+        ...player.life,
+        ...player.activeDons,
+        ...player.restDons,
+        ...player.donDeck,
+        ...player.characters.filter(
+          (x): x is CardData => x !== null
+        ),
+        ...(player.stage ? [player.stage] : []),
+        ...(player.leader ? [player.leader] : []),
+      ];
+
+      card = allCards.find(
+        (x) => x.id === data.cardId
+      );
     }
-
-    const allCards: CardData[] = [
-      ...player.hand,
-      ...player.deck,
-      ...player.trash,
-      ...player.life,
-      ...player.activeDons,
-      ...player.restDons,
-      ...player.donDeck,
-      ...player.characters.filter(
-        (x): x is CardData => x !== null
-      ),
-      ...(player.stage ? [player.stage] : []),
-      ...(player.leader ? [player.leader] : []),
-    ];
-
-    const card = allCards.find(
-      (x) => x.id === data.cardId
-    );
 
     if (!card) {
       return;
@@ -164,6 +173,7 @@ export default function Board({
     const store = useGameStore.getState();
 
     if (
+      activeData.type !== "attached-don" &&
       (activeData.from === "donDeck" ||
         activeData.from === "activeDon" ||
         activeData.from === "restDon") &&
@@ -211,6 +221,18 @@ export default function Board({
           overData.cardId
         );
       }
+
+      return;
+    }
+
+    if (
+      activeData.type === "attached-don" &&
+      overData.to === "donDeck"
+    ) {
+      store.returnAttachedDonToDeck(
+        activeData.playerIndex,
+        activeData.targetCardId
+      );
 
       return;
     }
@@ -421,7 +443,10 @@ export default function Board({
         </div>
       </div>
 
-      <DragOverlay zIndex={999999}>
+      <DragOverlay
+        zIndex={999999}
+        dropAnimation={isDraggingAttachedDon ? null : undefined}
+      >
         {activeCard ? (
           <img
             src={activeCard.card.image}

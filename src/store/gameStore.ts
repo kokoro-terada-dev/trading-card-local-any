@@ -263,6 +263,11 @@ interface GameState {
     targetCardId: string
   ) => void;
 
+  returnAttachedDonToDeck: (
+    playerIndex: number,
+    targetCardId: string
+  ) => void;
+
   moveDonBetweenAreas: (
     playerIndex: number,
     cardId: string,
@@ -1349,6 +1354,46 @@ export const useGameStore =
           image: getDonImageUrl(),
           type: "don",
           rotated: true,
+          attachedDonCount: 0,
+          isFaceUp: true,
+        });
+
+        return { players };
+      }),
+
+    returnAttachedDonToDeck: (
+      playerIndex: number,
+      targetCardId: string
+    ) =>
+      setWithHistory((state) => {
+        const players = [...state.players] as [
+          PlayerState,
+          PlayerState
+        ];
+
+        const player = players[playerIndex];
+
+        const targetCards = [
+          player.leader,
+          ...player.characters.filter(Boolean),
+        ].filter(Boolean) as CardData[];
+
+        const target = targetCards.find(
+          (x) => x.id === targetCardId
+        );
+
+        if (!target || target.attachedDonCount <= 0) {
+          return { players };
+        }
+
+        target.attachedDonCount--;
+
+        player.donDeck.unshift({
+          id: Math.random().toString(36).slice(2),
+          name: "DON",
+          image: getDonImageUrl(),
+          type: "don",
+          rotated: false,
           attachedDonCount: 0,
           isFaceUp: true,
         });
